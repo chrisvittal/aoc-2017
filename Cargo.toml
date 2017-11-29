@@ -1,0 +1,8 @@
+[package]
+name = "aoc"
+version = "0.1.0"
+authors = ["Chris Vittal <christopher.vittal@gmail.com>"]
+description = "Solutions to Advent of Code 2017"
+license = "MIT"
+
+[dependencies]
