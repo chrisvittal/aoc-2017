@@ -37,6 +37,20 @@ pub fn to_strings<P: AsRef<Path>>(p: P) -> Vec<String> {
     to_lines(p).map(|r| r.expect("error in read")).collect()
 }
 
+pub fn to_single_parsed<F, P>(p: P) -> Vec<F>
+where
+    P: AsRef<Path>,
+    F: FromStr
+{
+    to_lines(p).map(|v| {
+        let v = v.expect("error in read");
+        match v.parse() {
+            Err(_) => panic!("parse error for input: {}", v),
+            Ok(vp) => vp
+        }
+    }).collect()
+}
+
 /// Converts input into parsed vector
 pub fn to_split_parsed<F, P>(p: P) -> Vec<Vec<F>>
 where
