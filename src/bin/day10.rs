@@ -2,10 +2,10 @@
 extern crate aoc;
 
 fn main() {
-    let input: Vec<usize> = INPUT.trim().split(",").map(|b| b.parse().unwrap()).collect();
+    let input: Vec<usize> = INPUT.trim().split(",").filter_map(|b| b.parse().ok()).collect();
     println!("1: {}", solve1(&input));
     let lengths = INPUT.trim().as_bytes();
-    println!("2: {}", to_hex(&hash(&lengths)));
+    println!("2: {}", hash(&lengths).dense_string());
 }
 
 fn rev<T>(slice: &mut [T], start: usize, len: usize) {
@@ -15,39 +15,31 @@ fn rev<T>(slice: &mut [T], start: usize, len: usize) {
     }
 }
 
-fn hash(input: &[u8]) -> Vec<u8> {
+fn hash(input: &[u8]) -> HashResult {
     let mut pos = 0;
-    let mut skip = 0;
     let mut lst = START;
     for _ in 0..64 {
-        for &l in input.iter().chain(&INEND) {
+        for (&l, skip) in input.iter().chain(&INEND).zip(0..) {
             rev(&mut lst, pos, l as usize);
             pos = (pos + l as usize + skip) % lst.len();
-            skip += 1;
         }
     }
-    lst.chunks(16).map(|v| v.iter().fold(0, |a, b| a ^ b)).collect()
+    HashResult(lst)
 }
 
-#[inline]
-fn to_hex<'a, I: IntoIterator<Item = &'a u8>>(i: I) -> String {
-    i.into_iter().map(|x| format!("{:02x}", x)).collect()
-}
+struct HashResult([u8; 256]);
 
-/// Part 1 is down here because it's a toy 
-fn solve1(input: &[usize]) -> usize {
-    let mut pos = 0;
-    let mut skip = 0;
-    let mut lst = START;
-    for &l in input {
-        rev(&mut lst, pos, l);
-        pos = (pos + l + skip) % lst.len();
-        skip += 1;
+impl HashResult {
+    fn dense_string(&self) -> String {
+        self.0.chunks(16)
+            .map(|c| {
+                let d = c.iter().fold(0, |a, b| a ^ b);
+                format!("{:02x}", d)
+            })
+            .collect()
     }
-    lst[0] as usize * lst[1] as usize
 }
 
-const INPUT: &'static str = include_str!("../../data/day10");
 const INEND: [u8; 5] = [17, 31, 73, 47, 23];
 const START: [u8; 256] =
     [  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15,
@@ -66,3 +58,15 @@ const START: [u8; 256] =
      208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
      224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
      240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255];
+const INPUT: &'static str = include_str!("../../data/day10");
+
+/// Part 1 is down here because it's a toy
+fn solve1(input: &[usize]) -> usize {
+    let mut pos = 0;
+    let mut lst = START;
+    for (&l, skip) in input.iter().zip(0..) {
+        rev(&mut lst, pos, l);
+        pos = (pos + l + skip) % lst.len();
+    }
+    lst[0] as usize * lst[1] as usize
+}
