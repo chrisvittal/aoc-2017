@@ -3,7 +3,7 @@ extern crate aoc;
 
 use std::collections::HashMap;
 
-const FILENAME: &'static str = "data/day6";
+const FILENAME: &'static str = "data/day06";
 
 fn main() {
     let input = aoc::file::to_split_parsed(FILENAME).pop().unwrap();

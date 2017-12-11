@@ -2,7 +2,7 @@
 extern crate aoc;
 
 fn main() {
-    let input = aoc::file::first_line("data/day1");
+    let input = aoc::file::first_line("data/day01");
     let ans = solve_both(&input);
     println!("1: {}\n2: {}", ans.0, ans.1);
 }

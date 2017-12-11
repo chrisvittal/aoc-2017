@@ -15,7 +15,7 @@ lazy_static! {
     static ref RE: Regex = Regex::new(r"(\w+) \((\d+)\)").unwrap();
 }
 
-const INPUT: &'static str = "data/day7";
+const INPUT: &'static str = "data/day07";
 
 type MyGraph = Graph<Node, ()>;
 

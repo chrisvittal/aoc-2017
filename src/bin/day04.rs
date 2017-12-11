@@ -2,7 +2,7 @@
 extern crate aoc;
 
 fn main() {
-    let s = aoc::file::to_split_parsed("data/day4");
+    let s = aoc::file::to_split_parsed("data/day04");
     let x = s.iter().filter(|v| is_valid_base(v)).count();
     println!("1: {}", x);
     let y = s.iter().filter(|v| is_valid2(v)).count();

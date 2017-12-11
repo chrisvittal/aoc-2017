@@ -2,7 +2,7 @@
 extern crate aoc;
 
 fn main() {
-    let input: Vec<i32> = aoc::file::to_single_parsed("data/day5");
+    let input: Vec<i32> = aoc::file::to_single_parsed("data/day05");
     println!("1: {}", skip(input.clone(), |_| 1));
     println!("2: {}", skip(input, |t| if t >= 3 { -1 } else { 1 }));
 }

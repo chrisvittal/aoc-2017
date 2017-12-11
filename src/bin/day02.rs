@@ -4,7 +4,7 @@ extern crate aoc;
 use aoc::file;
 
 fn main() {
-    let s = file::to_split_parsed("data/day2");
+    let s = file::to_split_parsed("data/day02");
     println!("1: {}", checksum(&s));
     println!("2: {}", checksum2(&s));
 }

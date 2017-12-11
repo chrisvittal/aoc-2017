@@ -4,7 +4,7 @@ extern crate aoc;
 use std::str::FromStr;
 use std::collections::HashMap;
 
-const INPUT: &'static str = "data/day8";
+const INPUT: &'static str = "data/day08";
 
 fn main() {
     let input = aoc::file::to_strings(INPUT).into_iter().map(|v| v.parse().unwrap());

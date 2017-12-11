@@ -1,7 +1,7 @@
 
 extern crate aoc;
 
-const INPUT: &'static str = "data/day9";
+const INPUT: &'static str = "data/day09";
 
 fn main() {
     let input = aoc::file::first_line(INPUT);
