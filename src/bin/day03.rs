@@ -2,11 +2,7 @@
 const INPUT: u32 = 312051;
 
 fn main() {
-    let mut spiral = SpiralIterator::new();
-    while spiral.ent.n < INPUT {
-        spiral.next();
-    }
-    println!("1: {}", spiral.ent.x.abs() + spiral.ent.y.abs());
+    println!("1: {}", solve_one(INPUT as i32));
     let mut spiral2 = SpiralIterator2::new();
     while let Some(v) = spiral2.next() {
         if v > INPUT {
@@ -14,6 +10,13 @@ fn main() {
             break;
         }
     }
+}
+
+fn solve_one(input: i32) -> i32 {
+    if input <= 1 { return 0; }
+
+    let ring = (((input - 1) as f64).sqrt() / 2.).ceil() as i32;
+    ring + ((input - (4 * ring * ring - 2 * ring + 1)) % ring).abs()
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -52,28 +55,6 @@ impl<T: Ord + Clone> State<T> {
             max_y: it.clone(),
             min_y: it.clone(),
             dir: Direction::Right,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-struct SpiralEntry {
-    x: i32,
-    y: i32,
-    n: u32,
-}
-
-#[derive(Debug, Clone, Copy)]
-struct SpiralIterator {
-    ent: SpiralEntry,
-    state: State<i32>,
-}
-
-impl SpiralIterator {
-    fn new() -> Self {
-        SpiralIterator {
-            ent: SpiralEntry { x: 0, y: 0, n: 1 },
-            state: State::new(&0),
         }
     }
 }
@@ -120,24 +101,6 @@ impl Direction {
             Down => Right,
             Right => Up,
         }
-    }
-}
-
-impl Iterator for SpiralIterator {
-    type Item = SpiralEntry;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        use Direction::*;
-        let ret = self.ent;
-        self.ent.n += 1;
-        match self.state.dir {
-            Up => self.ent.y += 1,
-            Left => self.ent.x -= 1,
-            Down => self.ent.y -= 1,
-            Right => self.ent.x += 1,
-        }
-        self.state = self.state.update(self.ent.x, self.ent.y);
-        Some(ret)
     }
 }
 
