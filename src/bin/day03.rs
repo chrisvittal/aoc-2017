@@ -1,15 +1,13 @@
 
+use std::ops::{Add,AddAssign};
+use std::collections::HashMap;
+
 const INPUT: u32 = 312051;
 
 fn main() {
     println!("1: {}", solve_one(INPUT as i32));
-    let mut spiral2 = SpiralIterator2::new();
-    while let Some(v) = spiral2.next() {
-        if v > INPUT {
-            println!("2: {}", v);
-            break;
-        }
-    }
+    let n = SpiralSumIterator::new().find(|&n| n > INPUT).unwrap();
+    println!("2: {}", n);
 }
 
 fn solve_one(input: i32) -> i32 {
@@ -19,116 +17,82 @@ fn solve_one(input: i32) -> i32 {
     ring + ((input - (4 * ring * ring - 2 * ring + 1)) % ring).abs()
 }
 
-#[derive(Debug, Clone, Copy)]
-struct State<T: Ord> {
-    max_x: T,
-    min_x: T,
-    max_y: T,
-    min_y: T,
-    dir: Direction,
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+struct Point { x: i32, y: i32 }
+type Pt = Point;
+
+impl Point {
+    const NEIGHBORS: [Pt; 8] =
+        [Pt { x: -1, y:  1 }, Pt { x: 0, y:  1 }, Pt { x: 1, y:  1 },
+         Pt { x: -1, y:  0 },                     Pt { x: 1, y:  0 },
+         Pt { x: -1, y: -1 }, Pt { x: 0, y: -1 }, Pt { x: 1, y: -1 }];
+    fn new(x: i32, y: i32) -> Self { Point { x, y } }
 }
 
-impl<T: Ord> State<T> {
-    fn update(mut self, x: T, y: T) -> Self {
-        if x > self.max_x {
-            self.max_x = x;
-            self.dir = self.dir.turn_left();
-        } else if x < self.min_x {
-            self.min_x = x;
-            self.dir = self.dir.turn_left();
-        } else if y > self.max_y {
-            self.max_y = y;
-            self.dir = self.dir.turn_left();
-        } else if y < self.min_y {
-            self.min_y = y;
-            self.dir = self.dir.turn_left();
-        }
-        self
+impl Add for Point {
+    type Output = Point;
+    #[inline]
+    fn add(self, rhs: Self) -> Self {
+        Point { x: self.x + rhs.x, y: self.y + rhs.y }
     }
 }
 
-impl<T: Ord + Clone> State<T> {
-    fn new(it: &T) -> Self {
-        State {
-            max_x: it.clone(),
-            min_x: it.clone(),
-            max_y: it.clone(),
-            min_y: it.clone(),
-            dir: Direction::Right,
-        }
+impl<'a, 'b> Add<&'a Point> for &'b Point {
+    type Output = Point;
+    fn add(self, rhs: &'a Point) -> Point { *self + *rhs }
+}
+
+impl AddAssign for Point {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
     }
 }
 
-#[derive(Clone)]
-struct SpiralIterator2 {
-    x: usize,
-    y: usize,
-    state: State<usize>,
-    backing: Vec<Vec<u32>>
+struct SpiralSumIterator {
+    backing: HashMap<Point, u32>,
+    dir: Point,
+    loc: Point,
+    lim: usize,
+    step: usize,
+    need_extra: bool,
 }
 
-impl SpiralIterator2 {
+impl SpiralSumIterator {
     fn new() -> Self {
-        let mut v = Vec::new();
-        for _ in 0..1024 {
-            v.push(vec![0; 1024]);
-        }
-        let mut ret = SpiralIterator2 {
-            x: 512,
-            y: 512,
-            state: State::new(&512),
-            backing: v
+        let mut s = SpiralSumIterator {
+            backing: HashMap::with_capacity(100), // heuristic based on examining
+                                                  // mine and other people's inputs
+                                                  // this should never need to reallocate
+            dir: Pt::new(1,0),
+            loc: Pt::new(0,0),
+            lim: 1,
+            step: 0,
+            need_extra: true,
         };
-        ret.backing[ret.x][ret.y] = 1;
-        ret
+        s.backing.insert(s.loc, 1);
+        s
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl Direction {
-    fn turn_left(&self) -> Self {
-        use Direction::*;
-        match *self {
-            Up => Left,
-            Left => Down,
-            Down => Right,
-            Right => Up,
-        }
-    }
-}
-
-impl Iterator for SpiralIterator2 {
+impl Iterator for SpiralSumIterator {
     type Item = u32;
-
     fn next(&mut self) -> Option<Self::Item> {
-        use Direction::*;
-        let ret = fill(&mut *self.backing, self.x, self.y);
-        match self.state.dir {
-            Up => self.y += 1,
-            Left => self.x -= 1,
-            Down => self.y -= 1,
-            Right => self.x += 1,
+        self.loc += self.dir;
+        self.step += 1;
+        if self.step == self.lim {
+            self.step = 0;
+            self.need_extra = !self.need_extra;
+            if self.need_extra {
+                self.lim += 1;
+            }
+            self.dir = Pt { x: -self.dir.y, y: self.dir.x };
         }
-        self.state = self.state.update(self.x, self.y);
-        Some(ret)
+        let sum = Pt::NEIGHBORS.iter().fold(0, |acc, &neighbor|
+            match self.backing.get(&(self.loc + neighbor)) {
+                Some(v) => acc + v,
+                None => acc,
+            });
+        self.backing.insert(self.loc,sum);
+        Some(sum)
     }
 }
-
-fn fill(buf: &mut [Vec<u32>], x: usize, y: usize) -> u32 {
-    let mut tmp = 0;
-    for p in [-1, 0, 1].iter() {
-        for q in [-1, 0, 1].iter() {
-            tmp += buf[(x as isize + p) as usize][(y as isize + q) as usize]
-        }
-    }
-    buf[x][y] = tmp;
-    tmp
-}
-
