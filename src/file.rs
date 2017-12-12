@@ -14,7 +14,7 @@ fn to_buf_reader<P: AsRef<Path>>(p: P) -> io::BufReader<File> {
 #[inline]
 /// Simple function that collects a file into a `Lines` iterator, panics on
 /// any error.
-fn to_lines<P: AsRef<Path>>(p: P) -> io::Lines<io::BufReader<File>> {
+pub fn to_lines<P: AsRef<Path>>(p: P) -> io::Lines<io::BufReader<File>> {
     to_buf_reader(p).lines()
 }
 
