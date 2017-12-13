@@ -1,37 +1,40 @@
 
-extern crate petgraph;
+extern crate aoc;
 
-use petgraph::prelude::*;
-use std::io::{Cursor,BufRead};
+use std::collections::HashSet;
+use aoc::unionfind::*;
 
-static INPUT: &'static str = include_str!("../../data/day12");
+static INPUT: &'static str = "data/day12";
 
 fn main() {
-    let input = Cursor::new(INPUT).lines().map(|l| l.unwrap());
-    let graph = parse_input(input);
-    println!("1: {}", count(&graph, 0));
-    println!("2: {}", petgraph::algo::connected_components(&graph));
+    let input = aoc::file::to_lines(INPUT).map(|l| l.unwrap());
+    let mut uf = parse_input(input);
+    let mut cc = HashSet::new();
+    let mut siz = 0;
+    for i in 0..uf.len() {
+        cc.insert(uf.find(i));
+        if uf.find(i) == uf.find(0) {
+            siz += 1;
+        }
+    }
+    println!("1: {}", siz);
+    println!("2: {}", cc.len());
 }
 
-fn count<T, U>(g: &UnGraphMap<T, U>, start: T) -> usize
-where
-    T: Copy + std::hash::Hash + Ord
-{
-    let mut bfs = Bfs::new(g, start);
-    let mut count = 0;
-    while let Some(_) = bfs.next(g) { count += 1; }
-    count
-}
-
-fn parse_input<I: Iterator<Item = String>>(input: I) -> UnGraphMap <u32,()> {
-    let mut graph = UnGraphMap::new();
-    input.for_each(|line| {
+fn parse_input<I: Iterator<Item = String>>(iter: I) -> UnionFind {
+    let edges: Vec<(_, Vec<_>)> = iter.map(|line| {
         let mut it = line.split(" <-> ");
         let src = it.next().unwrap().parse().unwrap();
         let dests = it.next()
             .into_iter()
             .flat_map(|s| s.split(", ").map(|v| v.parse().unwrap()));
-        graph.extend(dests.zip(std::iter::repeat(src)))
-    });
-    graph
+        (src, dests.collect())
+    }).collect();
+    let mut uf = UnionFind::new(edges.len());
+    for (s, dests) in edges {
+        for d in dests {
+            uf.union(s, d);
+        }
+    }
+    uf
 }
