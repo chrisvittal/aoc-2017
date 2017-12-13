@@ -1,17 +1,26 @@
 
-extern crate aoc;
 extern crate petgraph;
 
 use petgraph::prelude::*;
-    
-use std::collections::HashMap;
+use std::io::{Cursor,BufRead};
 
-const INPUT: &'static str = "data/day12";
+static INPUT: &'static str = include_str!("../../data/day12");
 
 fn main() {
-    let input = aoc::file::to_lines(INPUT).map(|l| l.unwrap());
+    let input = Cursor::new(INPUT).lines().map(|l| l.unwrap());
     let graph = parse_input(input);
-    println!("{}", petgraph::algo::connected_components(&graph));
+    println!("1: {}", count(&graph, 0));
+    println!("2: {}", petgraph::algo::connected_components(&graph));
+}
+
+fn count<T, U>(g: &UnGraphMap<T, U>, start: T) -> usize
+where
+    T: Copy + std::hash::Hash + Ord
+{
+    let mut bfs = Bfs::new(g, start);
+    let mut count = 0;
+    while let Some(_) = bfs.next(g) { count += 1; }
+    count
 }
 
 fn parse_input<I: Iterator<Item = String>>(input: I) -> UnGraphMap <u32,()> {
@@ -26,29 +35,3 @@ fn parse_input<I: Iterator<Item = String>>(input: I) -> UnGraphMap <u32,()> {
     });
     graph
 }
-/*
-fn build_graph<I: Iterator<Item = (u32, Vec<u32>)>>(iter: I) -> UnGraphMap<u32,()> {
-    let mut graph = UnGraphMap::new();
-    for (src, dests) in iter {
-        let n = if let Some(&n) = nodemap.get(&src) {
-            n
-        } else {
-            let n = graph.add_node(src);
-            nodemap.insert(src, n);
-            n
-        };
-        
-        for d in dests {
-            let m = if let Some(&n) = nodemap.get(&d) {
-                n
-            } else {
-                let n = graph.add_node(d);
-                nodemap.insert(d, n);
-                n
-            };
-            graph.add_edge(n,m,());
-        }
-    }
-    graph
-}
-*/
