@@ -14,3 +14,7 @@ lazy_static = "1"
 num = "0.1"
 petgraph = "0.4"
 itertools = "0.7"
+bit-vec = "*"
+
+[profile.release]
+lto = true
