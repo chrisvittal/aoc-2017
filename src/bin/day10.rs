@@ -20,7 +20,7 @@ fn solve1(input: &[usize]) -> usize {
     let mut lst = KnotHash::START;
     for &l in input {
         knothash::rev(&mut lst, pos, l);
-        pos = (pos + l + skip) % lst.len();
+        pos += l + skip;
         skip += 1;
     }
     lst[0] as usize * lst[1] as usize

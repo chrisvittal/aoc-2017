@@ -19,7 +19,7 @@ impl KnotHash {
         for _ in 0..64 {
             for &l in input.iter().chain(&INEND) {
                 rev(&mut lst, pos, l as usize);
-                pos = (pos + l as usize + skip) % lst.len();
+                pos += l as usize + skip;
                 skip += 1;
             }
         }
