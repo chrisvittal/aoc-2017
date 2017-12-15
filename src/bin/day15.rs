@@ -19,7 +19,13 @@ impl DuelGen {
 impl Iterator for DuelGen {
     type Item = u64;
     fn next(&mut self) -> Option<Self::Item> {
-        self.prev = (self.prev * self.factor) % Self::MOD;
+        let mut tmp = self.prev * self.factor;
+        tmp = (tmp & Self::MOD) + (tmp >> 31);
+        self.prev = if tmp >> 31 > 0 {
+            tmp - Self::MOD
+        } else {
+            tmp
+        };
         Some(self.prev & Self::BITMASK)
     }
 }
@@ -36,7 +42,7 @@ impl FilteredDuelGen {
                 prev: start,
                 factor,
             },
-            filter
+            filter: filter - 1
         }
     }
 }
@@ -45,7 +51,7 @@ impl Iterator for FilteredDuelGen {
     type Item = u64;
     fn next(&mut self) -> Option<Self::Item> {
         let f = self.filter;
-        self.gen.find(|v| v % f == 0)
+        self.gen.find(|v| v & f == 0)
     }
 }
 
