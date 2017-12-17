@@ -1,5 +1,6 @@
 
 const INPUT: usize = 312;
+const LIMIT: usize = 50_000_000;
 
 fn main() {
     let mut v = vec![0];
@@ -12,11 +13,14 @@ fn main() {
     println!("1: {}", v[p+1]);
 
     let mut ans = 0;
-    next = 0;
-    for i in 1..50_000_001 {
-        next = (next + INPUT) % i;
-        if next == 0 { ans = i; }
-        next += 1;
+    let mut next = 0;
+    let mut i = 1;
+    while i <= LIMIT {
+        next = (next + INPUT) % i + 1;
+        if next == 1 { ans = i; }
+        let fits = (i - next) / INPUT;
+        next += fits * (INPUT + 1);
+        i += fits + 1;
     }
     println!("2: {}", ans);
 }
