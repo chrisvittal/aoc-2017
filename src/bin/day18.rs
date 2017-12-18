@@ -6,8 +6,184 @@ use std::str::FromStr;
 
 const INPUT: &'static str = "data/day18";
 
-// TODO(cdv): Create a Cpu data structure. To hold all data, notably a copy of 
-//            the instructions, registers and program counter. 
+fn main() {
+    let input: Vec<Inst> = aoc::file::to_single_parsed(INPUT);
+    let mut cpu0 = Cpu::from_instructions(0, input);
+    let tmp = loop {
+        match cpu0.step(false) {
+            Some(i) => break i,
+            _ => continue,
+        }
+    };
+    println!("1: {}", tmp);
+    cpu0.reset();
+    let mut cpu1 = cpu0.with_new_id(1);
+    cpu1.reset();
+    loop
+    {
+        if cpu1.finished { break; }
+
+        if let Some(v) = cpu0.step(true) {
+            cpu1.in_queue.push_back(v);
+        }
+
+        if let Some(v) = cpu1.step(true) {
+            cpu0.in_queue.push_back(v);
+        }
+
+        if cpu0.blocked && cpu1.blocked { break; }
+
+        if let Some(v) = cpu0.step(true) {
+            cpu1.in_queue.push_back(v);
+        }
+
+        if let Some(v) = cpu1.step(true) {
+            cpu0.in_queue.push_back(v);
+        }
+
+    }
+    println!("2: {}", cpu1.sent);
+}
+
+#[derive(Clone)]
+struct Cpu {
+    regs: HashMap<char, i64>,
+    insts: Vec<Inst>,
+    pc: i64,
+    in_queue: VecDeque<i64>,
+    sent: usize,
+    id: u8,
+    blocked: bool,
+    finished: bool,
+}
+
+impl Cpu {
+    fn from_instructions(cpu_id: u8, insts: Vec<Inst>) -> Self {
+        Cpu {
+            regs: HashMap::new(),
+            insts: insts,
+            pc: 0,
+            in_queue: VecDeque::new(),
+            sent: 0,
+            id: cpu_id,
+            blocked: false,
+            finished: false,
+        }
+    }
+
+    /// Clones the cpu, but gives a new id, `nid` must be different from `self.id`.
+    fn with_new_id(&self, nid: u8) -> Self {
+        assert!(self.id != nid);
+        let mut ncpu = self.clone();
+        ncpu.id = nid;
+        ncpu
+    }
+
+    fn reset(&mut self) {
+        self.regs.values_mut().for_each(|v| *v = 0);
+        self.pc = 0;
+        self.in_queue.clear();
+        self.sent = 0;
+        self.blocked = false;
+        self.finished = false;
+        *self.regs.entry('p').or_insert(0) = self.id as i64;
+    }
+}
+
+impl Cpu {
+    fn step(&mut self, part2: bool) -> Option<i64> {
+        use Inst::*;
+        if self.finished { return None; }
+        match self.insts[self.pc as usize] {
+            Snd(src) => {
+                let ent = self.regs.entry(src).or_insert(0);
+                if part2 {
+                    self.sent += 1;
+                    self.pc += 1;
+                    return Some(*ent);
+                } else {
+                    self.in_queue.push_back(*ent);
+                }
+            },
+            Set(dst, v) => {
+                let ent = self.regs.entry(dst).or_insert(0);
+                *ent = v;
+            },
+            SetR(dst, src) => {
+                let ent_s = *self.regs.entry(src).or_insert(0);
+                let ent_d = self.regs.entry(dst).or_insert(0);
+                *ent_d = ent_s;
+            },
+            AddReg(dst, src) => {
+                let ent_s = *self.regs.entry(src).or_insert(0);
+                let ent_d = self.regs.entry(dst).or_insert(0);
+                *ent_d += ent_s;
+            }
+            AddLit(dst, v) => {
+                let ent = self.regs.entry(dst).or_insert(0);
+                *ent += v;
+            },
+            MulReg(dst, src) => {
+                let ent_s = *self.regs.entry(src).or_insert(0);
+                let ent_d = self.regs.entry(dst).or_insert(0);
+                *ent_d *= ent_s;
+            }
+            MulLit(dst, v) => {
+                let ent = self.regs.entry(dst).or_insert(0);
+                *ent *= v;
+            },
+            ModReg(dst, src) => {
+                let ent_s = *self.regs.entry(src).or_insert(0);
+                let ent_d = self.regs.entry(dst).or_insert(0);
+                *ent_d %= ent_s;
+            }
+            ModLit(dst, v) => {
+                let ent = self.regs.entry(dst).or_insert(0);
+                *ent %= v;
+            },
+            Rcv(dst) => {
+                let ent = self.regs.entry(dst).or_insert(0);
+                if part2 {
+                    if let Some(i) = self.in_queue.pop_front() {
+                        self.blocked = false;
+                        *ent = i;
+                    } else {
+                        self.blocked = true;
+                        return None;
+                    }
+                } else {
+                    if *ent != 0 {
+                        self.pc += 1;
+                        return self.in_queue.pop_back();
+                    }
+                }
+            },
+            Jgz(cmp, v) => {
+                let ent = self.regs.entry(cmp).or_insert(0);
+                if *ent > 0 {
+                    self.pc += v;
+                    return None;
+                }
+            },
+            JgzR(cmp, src) => {
+                let ent_s = *self.regs.entry(src).or_insert(0);
+                let ent_c = self.regs.entry(cmp).or_insert(0);
+                if *ent_c > 0 {
+                    self.pc += ent_s;
+                    return None;
+                }
+            },
+            Jun(v) => {
+                self.pc += v;
+                return None;
+            },
+            Nop => {}
+        }
+        self.pc += 1;
+        if self.pc < 0 || self.pc as usize >= self.insts.len() { self.finished = true; }
+        None
+    }
+}
 
 #[derive(Clone,Eq,Copy,PartialEq,Debug)]
 enum Inst {
@@ -94,145 +270,3 @@ impl FromStr for Inst {
     }
 }
 
-fn main() {
-    let input: Vec<Inst> = aoc::file::to_single_parsed(INPUT);
-    let mut comp0 = HashMap::new();
-    let mut comp1 = HashMap::new();
-    comp0.insert('p', 0);
-    comp1.insert('p', 1);
-
-    let mut done0 = false;
-    let mut done1 = false;
-    let mut ip0 = 0;
-    let mut ip1 = 0;
-    let mut ss0: VecDeque<i64> = VecDeque::new();
-    let mut ss1: VecDeque<i64> = VecDeque::new();
-    let mut count = 0;
-    let mut res0: Option<char> = None;
-    let mut res1: Option<char> = None;
-
-    loop
-    {
-        if ip0 < 0 || ip0 as usize >= input.len() {
-            done0 = true;
-        }
-        if ip1 < 0 || ip1 as usize >= input.len() {
-            done1 = true;
-        }
-        if done1 { break; }
-
-        if let Some(c) = res0.take() {
-            let ent = comp0.entry(c).or_insert(0);
-            if let Some(v) = ss1.pop_front() {
-                *ent = v;
-            } else {
-                res0 = Some(c);
-            }
-        }
-        if let Some(c) = res1.take() {
-            let ent = comp1.entry(c).or_insert(0);
-            if let Some(v) = ss0.pop_front() {
-                *ent = v;
-            } else {
-                res1 = Some(c);
-            }
-        }
-
-        if res0.is_some() && res1.is_some() { break; }
-
-        if res0.is_none() && !done0 {
-            res0 = run(&mut comp0, input[ip0 as usize], &mut ip0,
-                       &mut ss1, &mut ss0, &mut 0);
-        }
-
-        if res1.is_none() && !done1 {
-            res1 = run(&mut comp1, input[ip1 as usize], &mut ip1,
-                       &mut ss0, &mut ss1, &mut count);
-        }
-    }
-    println!("{}", count);
-}
-
-/// Returns the sound if any was played
-fn run(comp: &mut HashMap<char, i64>,
-       inst: Inst,
-       ip: &mut i64,
-       stack_recv: &mut VecDeque<i64>,
-       stack_send: &mut VecDeque<i64>,
-       sent: &mut u32) -> Option<char> {
-    use Inst::*;
-    match inst {
-        Snd(src) => {
-            let ent = comp.entry(src).or_insert(0);
-            stack_send.push_back(*ent);
-            *sent += 1;
-        },
-        Set(dst, v) => {
-            let ent = comp.entry(dst).or_insert(0);
-            *ent = v;
-        },
-        SetR(dst, src) => {
-            let ent_s = *comp.entry(src).or_insert(0);
-            let ent_d = comp.entry(dst).or_insert(0);
-            *ent_d = ent_s;
-        },
-        AddReg(dst, src) => {
-            let ent_s = *comp.entry(src).or_insert(0);
-            let ent_d = comp.entry(dst).or_insert(0);
-            *ent_d += ent_s;
-        }
-        AddLit(dst, v) => {
-            let ent = comp.entry(dst).or_insert(0);
-            *ent += v;
-        },
-        MulReg(dst, src) => {
-            let ent_s = *comp.entry(src).or_insert(0);
-            let ent_d = comp.entry(dst).or_insert(0);
-            *ent_d *= ent_s;
-        }
-        MulLit(dst, v) => {
-            let ent = comp.entry(dst).or_insert(0);
-            *ent *= v;
-        },
-        ModReg(dst, src) => {
-            let ent_s = *comp.entry(src).or_insert(0);
-            let ent_d = comp.entry(dst).or_insert(0);
-            *ent_d %= ent_s;
-        }
-        ModLit(dst, v) => {
-            let ent = comp.entry(dst).or_insert(0);
-            *ent %= v;
-        },
-        Rcv(dst) => {
-            let ent = comp.entry(dst).or_insert(0);
-            if let Some(i) = stack_recv.pop_front() {
-                *ent = i;
-            } else {
-                *ip += 1;
-                return Some(dst);
-            }
-        },
-        Jgz(cmp, v) => {
-            let ent = comp.entry(cmp).or_insert(0);
-            if *ent > 0 {
-                *ip += v;
-                return None;
-            }
-        },
-        JgzR(cmp, src) => {
-            let ent_s = *comp.entry(src).or_insert(0);
-            let ent_c = comp.entry(cmp).or_insert(0);
-            if *ent_c > 0 {
-                *ip += ent_s;
-                return None;
-            }
-        },
-        Jun(v) => {
-            *ip += v;
-            return None;
-        },
-        Nop => {}
-    }
-    *ip += 1;
-    None
-}
