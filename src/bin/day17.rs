@@ -9,8 +9,7 @@ fn main() {
         next = 1 + (next+INPUT) % v.len();
         v.insert(next, i);
     }
-    let p = v.iter().position(|x| *x == 2017).unwrap();
-    println!("1: {}", v[p+1]);
+    println!("1: {}", v[next+1]);
 
     let mut ans = 0;
     let mut next = 0;
