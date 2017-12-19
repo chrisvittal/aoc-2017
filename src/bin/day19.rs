@@ -5,9 +5,9 @@ fn main() {
     let input: Vec<Vec<u8>> = INPUT.lines().map(|l| l.bytes().collect()).collect();
     let x = input[0].iter().position(|&b| b == b'|').unwrap();
     let mut path = Path::new(x, 0, &input);
-    while path.step() {}
-    println!("1: {}", unsafe { ::std::str::from_utf8_unchecked(&path.seen) });
-    println!("2: {}", path.count);
+    let (one, two) = path.run();
+    println!("1: {}", one);
+    println!("2: {}", two);
 }
 
 #[derive(Eq,PartialEq,Clone,Copy)]
@@ -21,6 +21,7 @@ struct Path<'a> {
     count: usize,
 }
 
+// TODO make this an iterator
 impl<'a> Path<'a> {
     fn new(x: usize, y: usize, maze: &'a Vec<Vec<u8>>) -> Self {
         Path {
@@ -30,6 +31,11 @@ impl<'a> Path<'a> {
             seen: Vec::new(),
             count: 1
         }
+    }
+
+    fn run(&mut self) -> (&str, usize) {
+        while self.step() {}
+        (unsafe { ::std::str::from_utf8_unchecked(&self.seen) }, self.count)
     }
 
     fn step(&mut self) -> bool {
