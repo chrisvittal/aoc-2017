@@ -2,12 +2,13 @@
 extern crate aoc;
 
 use std::collections::{HashMap, VecDeque};
+use std::rc::Rc;
 use std::str::FromStr;
 
 const INPUT: &'static str = "data/day18";
 
 fn main() {
-    let input: Vec<Inst> = aoc::file::to_single_parsed(INPUT);
+    let input = aoc::file::to_single_parsed(INPUT);
     let mut cpu0 = Cpu::from_instructions(0, input);
     let tmp = loop {
         match cpu0.step(false) {
@@ -48,7 +49,7 @@ fn main() {
 #[derive(Clone)]
 struct Cpu {
     regs: HashMap<char, i64>,
-    insts: Vec<Inst>,
+    insts: Rc<[Inst]>,
     pc: i64,
     in_queue: VecDeque<i64>,
     sent: usize,
@@ -58,10 +59,10 @@ struct Cpu {
 }
 
 impl Cpu {
-    fn from_instructions(cpu_id: u8, insts: Vec<Inst>) -> Self {
+    fn from_instructions<T: Into<Rc<[Inst]>>>(cpu_id: u8, insts: T) -> Self {
         Cpu {
             regs: HashMap::new(),
-            insts: insts,
+            insts: insts.into(),
             pc: 0,
             in_queue: VecDeque::new(),
             sent: 0,
