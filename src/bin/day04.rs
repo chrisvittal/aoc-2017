@@ -20,9 +20,8 @@ fn is_valid2(strs: &[String]) -> bool {
 
 fn is_valid_base<T: Eq>(vals: &[T]) -> bool {
     for (i, s) in vals.iter().enumerate() {
-        if i+1 == vals.len() { break; }
-        for t in vals[i+1..].iter() {
-            if s == t { return false; }
+        if vals[i+1..].iter().any(|t| s == t) {
+            return false;
         }
     }
     true
