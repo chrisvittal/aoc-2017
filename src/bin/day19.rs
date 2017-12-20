@@ -1,8 +1,11 @@
 
-const INPUT: &'static str = include_str!("../../data/day19");
+extern crate aoc;
+
+const INPUT: &'static str = "data/day19";
 
 fn main() {
-    let input: Vec<Vec<u8>> = INPUT.lines().map(|l| l.bytes().collect()).collect();
+    let input: Vec<Vec<u8>> = aoc::file::to_lines(INPUT)
+        .map(|l| l.unwrap().bytes().collect()).collect();
     let x = input[0].iter().position(|&b| b == b'|').unwrap();
     let mut path = Path::new(x, 0, &input);
     let (one, two) = path.run();

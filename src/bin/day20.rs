@@ -80,9 +80,11 @@ fn main() {
         println!("{:?}", max.0);
     }
 
-
-    // Experimentation shows that 50 iterations is good enough.
-    for _ in 0..50 {
+    // let's say after 30 iterations, if there are no collisions in any following period of 20
+    // iterations, then we call it good
+    let mut count = 0;
+    while count < 50 {
+        let len = input.len();
         input.iter_mut().for_each(|p| *p = p.step());
         input.sort_by_key(|p| p.pos);
         let groups = input.into_iter().group_by(|p| p.pos);
@@ -94,6 +96,13 @@ fn main() {
             }
         }
         input = new;
+        if len == input.len() || count < 30 {
+            count += 1; // no change is size, no collisions
+        } else if count < 30 {
+            count += 1; // too few steps, increment anyway
+        } else {
+            count = 30; // reset otherwise
+        }
     }
     println!("{}", input.len());
 }
