@@ -6,15 +6,13 @@ description = "Solutions to Advent of Code 2017"
 license = "MIT"
 
 [dependencies]
-regex = "0.2"
-libc = "0.2"
-serde = "1"
-serde_derive = "1"
-lazy_static = "1"
-num = "0.1"
-petgraph = "0.4"
+bit-vec = "0.4"
 itertools = "0.7"
-bit-vec = "*"
+lazy_static = "1"
+libc = "0.2"
+pathfinding = "0.6"
+petgraph = "0.4"
+regex = "0.2"
 
 [profile.release]
 lto = true
