@@ -77,7 +77,7 @@ fn main() {
                                p.vel.x.abs() + p.vel.y.abs() + p.vel.z.abs(),
                                p.pos.x.abs() + p.pos.y.abs() + p.pos.z.abs()))
         .unwrap();
-        println!("{:?}", max.0);
+        println!("1: {}", max.0);
     }
 
     // let's say after 30 iterations, if there are no collisions in any following period of 20
@@ -104,5 +104,5 @@ fn main() {
             count = 30; // reset otherwise
         }
     }
-    println!("{}", input.len());
+    println!("2: {}", input.len());
 }
