@@ -7,7 +7,7 @@ use std::collections::HashMap;
 const INPUT: &'static str = "data/day08";
 
 fn main() {
-    let input = aoc::file::to_strings(INPUT).into_iter().map(|v| v.parse().unwrap());
+    let input = aoc::file::to_lines(INPUT).map(|v| v.unwrap().parse().unwrap());
     let mut map = HashMap::new();
     let mut highest = ::std::i32::MIN;
     for inst in input {
