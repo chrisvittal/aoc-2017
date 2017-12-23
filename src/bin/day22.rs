@@ -23,7 +23,8 @@ fn main() {
         }).collect();
     let mut v1 = Virus::new(map.clone(), start, false);
     println!("1: {}", v1.nth(10_000-1).unwrap());
-    let mut v2 = Virus::new(map.clone(), start, true);
+    let mut v2 = Virus::new(map, start, true);
+    v2.map.reserve(110_000);
     println!("2: {}", v2.nth(10_000_000-1).unwrap());
 }
 
@@ -93,6 +94,7 @@ struct Point { x: i32, y: i32 }
 
 impl ::std::ops::Add<Dir> for Point {
     type Output = Point;
+    #[inline]
     fn add(self, rhs: Dir) -> Self {
         use Dir::*;
         match rhs {
@@ -105,6 +107,7 @@ impl ::std::ops::Add<Dir> for Point {
 }
 
 impl ::std::ops::AddAssign<Dir> for Point {
+    #[inline]
     fn add_assign(&mut self, rhs: Dir) {
         *self = *self + rhs;
     }
@@ -121,6 +124,7 @@ enum Dir {
 macro_rules! dir_impl{
     ($nm:ident, $up:ident, $rt:ident, $dn:ident, $lf:ident) =>
     {
+        #[inline]
         fn $nm(self) -> Self {
             use Dir::*;
             match self {

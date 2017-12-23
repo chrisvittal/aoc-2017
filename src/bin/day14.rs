@@ -22,8 +22,8 @@ fn main() {
         }
 
         let bits = BitVec::from_bytes(&hash);
-        coords.extend(bits.into_iter().enumerate().filter(|&(_,b)| b).map( |(j,_)| {
-            (j as i32, i as i32)
+        coords.extend(bits.into_iter().enumerate().filter_map(|(j,b)| {
+            if b { Some((j as i32, i as i32)) } else { None }
         }));
     }
     println!("1: {}", ans);
@@ -39,7 +39,7 @@ fn cc(mut set: HashSet<(i32,i32)>) -> u32 {
         let k = if let Some(k) = set.iter().next() {
             *k
         } else {
-            break;
+            return cc;
         };
 
         set.remove(&k);
@@ -53,6 +53,5 @@ fn cc(mut set: HashSet<(i32,i32)>) -> u32 {
             queue.extend(set.take(&(x, y + 1)));
         }
     }
-    cc
 }
 
