@@ -28,8 +28,7 @@ fn build(comps: &[Component],
     let mut max = Answer { pt1: 0, pt2: (0,0) };
     if comps.len() == used.len() { return max; }
     for (i,c) in comps.iter().enumerate() {
-        let contains = used.contains(&i);
-        if (c.0 == prev || c.1 == prev) && !contains {
+        if (c.0 == prev || c.1 == prev) && !used.contains(&i) {
             used.insert(i);
             let Answer { pt1, pt2 }= build(comps, &mut used, c.0 + c.1 - prev);
             let pt1 = pt1 + c.0 + c.1;
