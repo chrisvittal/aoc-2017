@@ -41,8 +41,8 @@ jnz 1 -23
 
 // TODO: add some parsing of the input to determine initial values of b and c
 fn main() {
-    println!("{}", run1(84));
-    println!("{}", run2(84*100 + 100_000, 17_000, 17));
+    println!("1: {}", run1(84));
+    println!("2: {}", run2(84*100 + 100_000, 17_000, 17));
 }
 
 fn run2(mut b: i64, c_off: i64, step: i64) -> u32 {

@@ -62,10 +62,10 @@ fn dance(mut prgs: [u8; 16], mv: &Dance) -> [u8; 16] {
 fn main() {
     let input: Vec<Dance> = aoc::file::first_line(INPUT).split(",").map(|v| v.parse().unwrap()).collect();
     let ans = input.iter().fold(START, |prgs, dnc| dance(prgs, dnc));
-    println!("{}", ::std::str::from_utf8(&ans).unwrap());
+    println!("1: {}", ::std::str::from_utf8(&ans).unwrap());
     let ans = find(START, &input, |prgs, dncs| dncs.iter().fold(prgs, |p, d| dance(p, d)),
                    1_000_000_000);
-    println!("{}", ::std::str::from_utf8(&ans).unwrap());
+    println!("2: {}", ::std::str::from_utf8(&ans).unwrap());
 }
 
 fn find(mut init: [u8; 16],
