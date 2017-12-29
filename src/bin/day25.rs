@@ -1,5 +1,5 @@
 
-use std::collections::HashSet;
+use std::collections::VecDeque;
 
 #[derive(Clone,Copy)]
 enum State {
@@ -12,12 +12,21 @@ enum State {
 }
 
 struct Machine {
-    tape: HashSet<i32>,
-    pos: i32,
+    tape: VecDeque<bool>,
+    pos: usize,
     state: State,
 }
 
 impl Machine {
+    fn new() -> Self {
+        const LEN: usize = 10001;
+        Machine {
+            tape: vec![false; LEN].into(),
+            pos: LEN/2,
+            state: State::A,
+        }
+    }
+
     fn step(&mut self) {
         use State::*;
         match (self.state, self.val()) {
@@ -86,40 +95,43 @@ impl Machine {
 
     #[inline(always)]
     fn write_one(&mut self) {
-        self.tape.insert(self.pos);
+        self.tape[self.pos] = true;
     }
 
     #[inline(always)]
     fn write_zero(&mut self) {
-        self.tape.remove(&self.pos);
+        self.tape[self.pos] = false;
     }
 
     #[inline(always)]
     fn val(&self) -> bool {
-        self.tape.contains(&self.pos)
+        self.tape[self.pos]
     }
 
     #[inline(always)]
     fn left(&mut self) {
-        self.pos -= 1;
+        if self.pos == 0 {
+            self.tape.push_front(false);
+        } else {
+            self.pos -= 1;
+        }
     }
 
     #[inline(always)]
     fn right(&mut self) {
+        if self.pos == self.tape.len() - 1 {
+            self.tape.push_back(false);
+        }
         self.pos += 1;
     }
 
     fn checksum(&self) -> usize {
-        self.tape.len()
+        self.tape.iter().filter(|&b| *b).count()
     }
 }
 
 fn main() {
-    let mut machine = Machine {
-        tape: HashSet::with_capacity(5000),
-        pos: 0,
-        state: State::A,
-    };
+    let mut machine = Machine::new();
     for _ in 0..12368930 {
         machine.step()
     }
